@@ -1,0 +1,10 @@
+^C:\USERS\JUSTI\DOCUMENTS\PROJECTS\FUZZING-VALIDATORS\BUILD-VS\CMAKEFILES\93CB922C881499C4B6C345499074A245\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/justi/Documents/Projects/fuzzing-validators -BC:/Users/justi/Documents/Projects/fuzzing-validators/build-vs --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/justi/Documents/Projects/fuzzing-validators/build-vs/rlbox_validator_fuzzing.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

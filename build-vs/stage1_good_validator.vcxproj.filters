@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\justi\Documents\Projects\fuzzing-validators\src\stage1_harness.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\justi\Documents\Projects\fuzzing-validators\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{13A77B58-30C7-371A-9599-1C2B76CD3BC4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
