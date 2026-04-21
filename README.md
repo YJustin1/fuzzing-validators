@@ -36,6 +36,16 @@ cmake --build build
 - `stage1_bad_validator` should usually discover a failing input quickly.
 - `stage1_good_validator` should run cleanly under the same budget.
 
+## Stage 2 (Byte-Driven Harness)
+
+Stage 2 accepts raw bytes and parses them into a `Candidate` before RLBox boundary handling.
+This matches coverage-guided fuzzing workflows (e.g., AFL++) where each testcase is a byte sequence.
+
+```powershell
+.\build-vs\RelWithDebInfo\stage2_bad_validator.exe .\path\to\input.bin
+.\build-vs\RelWithDebInfo\stage2_good_validator.exe .\path\to\input.bin
+```
+
 ## Sanitizers
 
 For stronger bug signals, compile with ASan/UBSan where toolchain support exists:

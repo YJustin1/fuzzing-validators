@@ -26,3 +26,9 @@ target_link_libraries(stage1_bad_validator PRIVATE stage1_core)
 
 add_executable(stage1_good_validator src/stage1_good_validator.cpp)
 target_link_libraries(stage1_good_validator PRIVATE stage1_core)
+
+add_executable(stage2_bad_validator src/stage2_bad_validator.cpp)
+target_link_libraries(stage2_bad_validator PRIVATE stage1_core)
+
+add_executable(stage2_good_validator src/stage2_good_validator.cpp)
+target_link_libraries(stage2_good_validator PRIVATE stage1_core)

@@ -24,6 +24,16 @@ If the validator accepts a value and the sink detects unsafe behavior, that is a
   - Calls `run_stage1(...)` with `good_validator`.
   - Purpose: confirm the harness does not report false failures under the same budget (negative control).
 
+- `src/stage2_bad_validator.cpp`
+  - Stage 2 byte-input target for the known-bad validator.
+  - Reads a raw input file and maps bytes into a `Candidate`.
+  - Purpose: coverage-guided fuzz entrypoint where insufficient validation should be discoverable.
+
+- `src/stage2_good_validator.cpp`
+  - Stage 2 byte-input target for the known-good validator.
+  - Same byte parsing path as bad target, but with strict validator.
+  - Purpose: control target for estimating false positives under the same parser/input model.
+
 ### Core Components
 
 - `src/core/candidate.hpp`
@@ -55,6 +65,10 @@ If the validator accepts a value and the sink detects unsafe behavior, that is a
     4. execute sink if accepted
     5. fail via oracle when unsafe
   - Purpose: reusable driver for Stage 1 experiments and future stage evolution.
+
+- `src/core/byte_parser.hpp`
+  - Converts raw byte input into `Candidate` fields.
+  - Purpose: Stage 2 adapter from fuzzer-produced bytes to validator test values.
 
 ## Build / Project Files
 
