@@ -16,8 +16,13 @@ if(ENABLE_SANITIZERS)
   endif()
 endif()
 
-add_executable(stage1_bad_validator src/stage1_harness.cpp)
-target_compile_definitions(stage1_bad_validator PRIVATE USE_BAD_VALIDATOR=1)
+set(RLBOX_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/third_party/rlbox/code/include")
 
-add_executable(stage1_good_validator src/stage1_harness.cpp)
-target_compile_definitions(stage1_good_validator PRIVATE USE_BAD_VALIDATOR=0)
+add_library(stage1_core INTERFACE)
+target_include_directories(stage1_core INTERFACE "${CMAKE_SOURCE_DIR}/src" "${RLBOX_INCLUDE_DIR}")
+
+add_executable(stage1_bad_validator src/stage1_bad_validator.cpp)
+target_link_libraries(stage1_bad_validator PRIVATE stage1_core)
+
+add_executable(stage1_good_validator src/stage1_good_validator.cpp)
+target_link_libraries(stage1_good_validator PRIVATE stage1_core)
