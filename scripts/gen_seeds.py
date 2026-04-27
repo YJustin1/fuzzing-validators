@@ -22,7 +22,7 @@ import struct
 
 BUFFER_SIZE = 128
 INDEX_TABLE_SIZE = 16
-SMALL_INDEX_SIZE = 4  # sink_indexed_read_small; matches host.cpp host_array[4]
+SMALL_INDEX_SIZE = 4  # sink_indexed_read_small; same span as host_examples small tables
 
 SEED_DIR = os.path.join(os.path.dirname(__file__), "..", "seeds")
 SEED_DIR = os.path.normpath(SEED_DIR)

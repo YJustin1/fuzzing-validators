@@ -1,4 +1,4 @@
-// Mirrors host.cpp::sandbox_array_index_unchecked_{unsafe,safe,primitive_unsafe}.
+// Unchecked sandbox indexing: validator accepts everything (no-op).
 // The fuzzer-controlled sandbox value is used directly as a host-array
 // index with no validation (unchecked_validator = UNSAFE_unverified).
 // Expected behavior: oracle fires on any index outside [0, 4).

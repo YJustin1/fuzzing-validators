@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""Smoke-test the docs/host.cpp cases we can exercise without RLBox.
+"""Smoke-test the host_examples cases we can exercise without RLBox.
 
-docs/host.cpp functions fall into three categories; this script only
-drives categories (A) and (B). Category (C) (sandbox_array_index_*) is
-fuzzed by the AFL harnesses stage2_afl_unchecked_indexed /
-stage2_afl_clamped_indexed; see docs/host-validators-map.md.
+Those functions fall into three categories; this script only drives
+categories (A) and (B). Category (C) (sandbox_array_index_*) is fuzzed by
+the AFL harnesses stage2_afl_unchecked_indexed /
+stage2_afl_clamped_indexed.
 
   (A) Smoke-test, constant-behavior cases - no inputs, fixed outcome.
   (B) Arg-driven cases - single scalar input, pinned to the value that
-      triggers the tests.rs-expected behavior.
+      triggers the expected outcome in the tables below.
   (C) RLBox-specific cases - handled by AFL, NOT this script.
 
-Expectations encoded here mirror docs/tests.rs: "Ok" maps to a normal
+Expectations encoded below: "Ok" maps to a normal
 exit, "Err" maps to an abnormal exit (nonzero, signal, or SEH).
 
 Limitations:
@@ -38,7 +38,7 @@ from pathlib import Path
 from typing import Optional
 
 # ---- Category (A): smoke-test, constant-behavior cases (no inputs) ----
-# Expected Ok in tests.rs.
+# Expected Ok (clean exit).
 CASES_A_OK = [
     ("trivial_array_read", None),
     ("repeated_array_read", None),
@@ -46,13 +46,13 @@ CASES_A_OK = [
     ("trivial_struct_read", None),
     ("trivial_struct_read_nested", None),
 ]
-# Expected Err in tests.rs; reliably trap on every supported platform.
+# Expected Err (crash/signal); reliably trap on every supported platform.
 CASES_A_CRASH_RELIABLE = [
     ("basic_null_read", None),
     ("basic_null_write", None),
     ("basic_div_by_zero", None),
 ]
-# Expected Err in tests.rs; stack-OOB UB that only reliably traps
+# Expected Err (crash); stack-OOB UB that only reliably traps
 # under ASan/UBSan.
 CASES_A_CRASH_ASAN_ONLY = [
     ("basic_oob_read", None),
@@ -60,7 +60,7 @@ CASES_A_CRASH_ASAN_ONLY = [
 ]
 
 # ---- Category (B): arg-driven cases (single scalar input) ----
-# A fixed argument picks the tests.rs-expected behavior.
+# A fixed argument picks the expected outcome for that row.
 CASES_B_OK = [
     ("basic_div_by_zero_guarded", "0"),
     ("basic_div_by_zero_guarded", "7"),

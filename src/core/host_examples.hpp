@@ -1,11 +1,10 @@
 #pragma once
 
-// Direct ports of docs/host.cpp functions that can be exercised
-// dynamically without a full RLBox sandbox. They back the smoke-test
-// runner (scripts/smoke_test.py) so we can compare runtime outcomes
-// against docs/tests.rs expectations.
+// Reference-style host examples that can be exercised dynamically without
+// a full RLBox sandbox. They back the smoke-test runner (scripts/smoke_test.py),
+// which encodes expected safe vs trap outcomes for each case name.
 //
-// The docs/host.cpp functions fall into three categories, and this
+// These examples fall into three categories, and this
 // project handles them in three *different* places. This header only
 // covers categories (A) and (B); category (C) is handled by dedicated
 // AFL harnesses.
@@ -23,7 +22,7 @@
 //
 //   (B) Arg-driven cases:
 //       A single scalar argument controls the outcome. The smoke-test
-//       runner pins a fixed value chosen to force the tests.rs-expected
+//       runner pins a fixed value chosen to force the smoke_test.py-expected
 //       behavior. These *could* be fuzzed per-argument but the payoff
 //       is small since they don't exercise any RLBox boundary.
 //
@@ -33,11 +32,9 @@
 //       basic_div_by_zero_guarded(denom) -> always safe
 //
 //   (C) RLBox-specific cases (NOT in this header):
-//       The sandbox_array_index_* family from host.cpp is modeled by
-//       the dedicated AFL harnesses in src/stage2_afl_*, which drive
-//       the fuzzer-controlled sandbox value through our full
-//       RlSandbox + validator + sink pipeline. See
-//       docs/host-validators-map.md for the mapping.
+//       Unchecked vs clamped sandbox indexing is modeled by the dedicated
+//       AFL harnesses in src/stage2_afl_*, which drive the fuzzer-controlled
+//       sandbox value through our full RlSandbox + validator + sink pipeline.
 //
 // Sanitizer caveat for category (A) stack-array OOB reads/writes:
 // those are undefined behavior that may not reliably trap on MSVC or
@@ -53,7 +50,7 @@ namespace host_examples {
 // (A) Smoke-test, constant-behavior cases (no inputs)
 // ===========================================================
 
-// ----- Expected Ok in tests.rs -----
+// ----- Expected Ok (see smoke_test.py CASES_* tables) -----
 
 inline int trivial_array_read() {
   volatile int32_t host_array[4] = {100, 200, 300, 400};
@@ -96,7 +93,7 @@ inline int trivial_struct_read_nested() {
   return static_cast<int>(host_struct.b.a);
 }
 
-// ----- Expected Err in tests.rs -----
+// ----- Expected Err / trap (see smoke_test.py) -----
 
 inline int basic_null_read() {
   volatile int32_t* host_array = nullptr;
@@ -174,6 +171,6 @@ inline int basic_oob_read_from_arg(uint32_t index) {
 // NOTE: Category (C) RLBox-specific cases (sandbox_array_index_*) are
 // NOT ported here. Those require a live RlSandbox and are exercised by
 // the AFL harnesses stage2_afl_unchecked_indexed and
-// stage2_afl_clamped_indexed. See docs/host-validators-map.md.
+// stage2_afl_clamped_indexed.
 
 }  // namespace host_examples

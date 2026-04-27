@@ -1,120 +1,71 @@
-# File Guide (Current Stage 1 Layout)
+# File Guide
 
-This guide explains what each source file does in the current RLBox validator-testing prototype.
+What each artifact does in this RLBox validator-testing prototype.
 
 ## Big Picture
 
-Stage 1 models this pipeline:
+Stage 1 random-input harness and Stage 2 AFL/file-input pipelines share:
 
-`input generator -> RLBox boundary crossing -> validator -> sink -> oracle`
+`bytes -> RLBox boundary crossing -> validator -> sink -> oracle`
 
-If the validator accepts a value and the sink detects unsafe behavior, that is a finding.
+If the validator accepts a value and the sink detects unsafe behavior, that is a finding worth recording as an AFL crash.
 
-## Source Files
+## Entry Points — Stage 1 & Stage 2
 
-### Entry Points
+### Stage 1 random generation
 
-- `src/stage1_bad_validator.cpp`
-  - Executable for the known-bad validator baseline.
-  - Calls `run_stage1(...)` with `bad_validator`.
-  - Purpose: confirm the harness can find failures (positive control).
+- `src/stage1_bad_validator.cpp` — calls `run_stage1(...)` with `bad_validator` (positive control).
+- `src/stage1_good_validator.cpp` — calls `run_stage1(...)` with `good_validator` (negative control).
 
-- `src/stage1_good_validator.cpp`
-  - Executable for the known-good validator baseline.
-  - Calls `run_stage1(...)` with `good_validator`.
-  - Purpose: confirm the harness does not report false failures under the same budget (negative control).
+### Stage 2 file-input reproducers (non-AFL)
 
-- `src/stage2_bad_validator.cpp`
-  - Stage 2 byte-input target for the known-bad validator.
-  - Reads a raw input file and maps bytes into a `Candidate`.
-  - Purpose: coverage-guided fuzz entrypoint where insufficient validation should be discoverable.
+Byte file → `candidate_from_bytes` → RLBox path → validator + sink. Used to replay AFL crashes without the fork server.
 
-- `src/stage2_good_validator.cpp`
-  - Stage 2 byte-input target for the known-good validator.
-  - Same byte parsing path as bad target, but with strict validator.
-  - Purpose: control target for estimating false positives under the same parser/input model.
+- `src/stage2_bad_validator.cpp`, `src/stage2_good_validator.cpp` — `sink_use`.
+- `src/stage2_length_only_indexed.cpp` — `length_only_validator` + `sink_indexed_read`.
+- `src/stage2_unchecked_indexed.cpp` — `unchecked_validator` + `sink_indexed_read_small`.
+- `src/stage2_clamped_indexed.cpp` — `clamp_small_index` + `unchecked_validator` + same small sink.
+- `src/stage2_div_by_zero.cpp` — `unchecked_validator` + `sink_divide`.
+- `src/stage2_div_by_zero_guarded.cpp` — `nonzero_validator` + `sink_divide`.
 
-- `src/stage2_afl_bad_validator.cpp`
-  - Stage 2 AFL++ entrypoint for `bad_validator` + `sink_use`.
-  - Uses AFL persistent mode (`__AFL_LOOP`) when built with `afl-clang-fast++`, falls back to `argv[1]` file input otherwise.
-  - Purpose: coverage-guided discovery of values that bypass the bad validator and fail the range sink.
+### Stage 2 AFL++ (`__AFL_LOOP` persistent mode)
 
-- `src/stage2_afl_good_validator.cpp`
-  - Stage 2 AFL++ entrypoint for `good_validator` + `sink_use`.
-  - Same persistent-mode / file-input dual build as the bad variant.
-  - Purpose: calibration target that should stay clean under the same budget.
+- `src/stage2_afl_bad_validator.cpp` / `stage2_afl_good_validator.cpp` — calibration pair on `sink_use`.
+- `src/stage2_afl_length_only_indexed.cpp` — weak length-only validator vs indexed sink.
+- `src/stage2_afl_unchecked_indexed.cpp` vs `stage2_afl_clamped_indexed.cpp` — unchecked vs clamp mitigation on `sink_indexed_read_small`.
+- `src/stage2_afl_div_by_zero.cpp` vs `stage2_afl_div_by_zero_guarded.cpp` — division oracle calibration pair.
 
-- `src/stage2_afl_length_only_indexed.cpp`
-  - Stage 2 AFL++ entrypoint for `length_only_validator` + `sink_indexed_read`.
-  - Demonstrates that validator sufficiency is sink-dependent: a validator that only constrains `length` leaves `offset` unbounded, which is unsafe when the sink indexes an array by `offset`.
-  - Purpose: concrete evidence for the proposal claim that validators must be evaluated against the concrete use-site.
+### Smoke examples
 
-### Core Components
+- `src/core/host_examples.hpp` — illustrative safe reads and deliberate UB for smoke checks.
+- `src/smoke_host_examples.cpp` — CLI driver for categories (A) constant-behavior and (B) arg-driven cases only.
 
-- `src/core/candidate.hpp`
-  - Defines `Candidate` (`offset`, `length`) as the unit under test.
-  - Provides `random_candidate(...)` for Stage 1 random input generation.
+## Core Components
 
-- `src/core/rlbox_adapter.hpp`
-  - Wraps RLBox-specific logic for the noop backend.
-  - Creates the RLBox sandbox type alias.
-  - Sends candidate fields through `invoke_sandbox_function(...)` and unwraps with `copy_and_verify(...)`.
-  - Purpose: ensure test values follow RLBox taint/unwrapping semantics before validation.
+- `src/core/candidate.hpp` — `Candidate { offset, length }`; Stage 1 random helpers.
+- `src/core/byte_parser.hpp` — raw bytes → `Candidate`.
+- `src/core/rlbox_adapter.hpp` — noop RLBox sandbox plumbing (`invoke_sandbox_function`, `copy_and_verify`).
+- `src/core/validators.hpp` — `bad_validator`, `good_validator`, `length_only_validator`, plus `unchecked_validator`, `nonzero_validator`, `clamp_small_index`.
+- `src/core/sink_oracle.hpp` — `sink_use`, `sink_indexed_read`, `sink_indexed_read_small`, `sink_divide`; `oracle_fail` aborts for AFL.
+- `src/core/run_engine.hpp` — `run_stage1`, `run_stage2_case_with_sink`, `run_stage2_case_with_clamp`.
 
-- `src/core/validators.hpp`
-  - Contains validator implementations:
-    - `bad_validator`: intentionally incomplete checks (only offset bounds)
-    - `good_validator`: stricter bounds and overflow-safe checks
-    - `length_only_validator`: constrains only `length` — sufficient for sinks that don't use `offset` as an index, unsafe otherwise
-  - Purpose: calibrate harness behavior with known fail/pass validators and demonstrate sink-dependent sufficiency.
+## Scripts & corpus
 
-- `src/core/sink_oracle.hpp`
-  - Simulates two trusted use-sites:
-    - `sink_use`: range-based buffer write (uses `offset` and `length`)
-    - `sink_indexed_read`: indexed array read (uses `offset` as index into a 16-entry table)
-  - Exposes `SinkFn` so the run engine can pair any validator with any sink.
-  - Performs oracle detection (`oracle_fail`) via `std::abort()` so AFL++ records failures as crashes.
-  - Purpose: turn validator insufficiency into a concrete, reproducible failure signal under multiple use-sites.
+- `scripts/gen_seeds.py` — filtered boundary corpus safe under every shipped AFL target.
+- `scripts/run_afl.sh`, `scripts/fuzz.ps1`, `scripts/fuzz_all.ps1` — Docker / batch AFL workflows.
+- `scripts/report.py`, `scripts/report.ps1` — parse `fuzzer_stats`, replay crashes, bucket oracle reasons.
+- `scripts/smoke_test.py` — drives `smoke_host_examples`; expectations encoded in `CASES_*` tables in that script.
+- `seeds/` — generated seeds (checked in so clones skip corpus generation).
 
-- `src/core/run_engine.hpp`
-  - Orchestrates stage pipelines:
-    - `run_stage1(...)`: random generation loop used by Stage 1 executables.
-    - `run_stage2_case(...)`: single byte-driven case using the default `sink_use`.
-    - `run_stage2_case_with_sink(...)`: byte-driven case parameterized by validator AND sink, enabling sink-dependent studies. Overloaded for both `std::vector<uint8_t>` and raw `(buf, len)` so AFL persistent mode can call it without copying.
-  - Purpose: reusable driver for Stage 1/2 experiments; the sink-parameterized overload is what makes sink-dependent sufficiency testing cheap to extend.
+## Build / project files
 
-- `src/core/byte_parser.hpp`
-  - Converts raw byte input into `Candidate` fields.
-  - Purpose: Stage 2 adapter from fuzzer-produced bytes to validator test values.
+- `CMakeLists.txt` — targets listed above + optional sanitizers.
+- `third_party/rlbox/` — RLBox submodule (`third_party/rlbox/code/include`).
 
-## Build / Project Files
+## Contract docs
 
-- `CMakeLists.txt`
-  - Configures C++ build and optional sanitizers.
-  - Adds executables:
-    - `stage1_bad_validator`, `stage1_good_validator` (Stage 1 random generation)
-    - `stage2_bad_validator`, `stage2_good_validator` (Stage 2 byte-driven, file input)
-    - `stage2_afl_bad_validator`, `stage2_afl_good_validator`, `stage2_afl_length_only_indexed` (Stage 2 AFL persistent-mode targets)
-  - Adds include paths for local source and RLBox headers (`third_party/rlbox/code/include`).
+- `docs/rlbox-contract.md` — scope, stages, terminology.
 
-- `scripts/gen_seeds.py`
-  - Generates a boundary-focused seed corpus under `seeds/` (offsets/lengths at 0, 1, 15/16/17, 127/128/129, -1, plus interior values).
-  - Filters out seeds that would crash any shipped AFL target so one corpus works for all campaigns.
+## Why calibration pairs exist
 
-- `scripts/run_afl.sh`
-  - Convenience wrapper that (re)builds one AFL target with `afl-clang-fast++` and runs a bounded `afl-fuzz` campaign against it. Intended to be invoked inside the `aflplusplus/aflplusplus` container.
-
-- `docs/rlbox-contract.md`
-  - Project contract and terminology for RLBox validator fuzzing.
-  - Defines stage boundaries and expected artifacts.
-
-## Why both `stage1_bad_validator` and `stage1_good_validator` exist
-
-You need both to validate the **testing framework itself**, not just validators:
-
-- `stage1_bad_validator` should fail quickly.
-  - Demonstrates your pipeline can detect insufficient validation.
-- `stage1_good_validator` should stay clean.
-  - Demonstrates your pipeline is not trivially flagging everything as unsafe.
-
-Together, they provide calibration evidence that findings are meaningful.
+You need opposite validators/sinks under similar budgets to interpret zero-crash vs many-crash outcomes — see `README.md` “Calibration Design”.

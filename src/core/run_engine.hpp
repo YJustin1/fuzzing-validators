@@ -83,7 +83,7 @@ inline int run_stage2_case_with_sink(const uint8_t* data, std::size_t size,
 // Clamping-boundary pipeline: models the copy_and_verify pattern that
 // rewrites out-of-range values to a safe default instead of rejecting
 // them. The clamp runs after the RLBox unwrap but before the validator,
-// mirroring host.cpp::sandbox_array_index_checked.
+// mirroring the clamp-at-boundary pattern used by stage2_afl_clamped_indexed.
 using ClampFn = Candidate (*)(Candidate);
 
 inline int run_stage2_case_with_clamp(const uint8_t* data, std::size_t size,

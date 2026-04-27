@@ -1,6 +1,6 @@
-// Smoke-test driver for the docs/host.cpp cases we can exercise without
+// Smoke-test driver for the host_examples cases we can exercise without
 // a full RLBox sandbox. See src/core/host_examples.hpp for the full
-// rationale; the short version is that docs/host.cpp functions fall
+// rationale; the short version is that those functions fall
 // into three categories:
 //
 //   (A) Smoke-test, constant-behavior cases   -> handled here
@@ -66,7 +66,7 @@ int dispatch(const std::string& name, int argc, char** argv) {
   if (name == "basic_oob_write")            { (void)basic_oob_write();            return 0; }
 
   // ---- (B) Arg-driven cases (single scalar input) ----
-  // A value read from argv forces the tests.rs-expected behavior.
+  // A value read from argv forces the smoke_test.py-expected behavior.
   // Could be promoted to AFL targets later, but the smoke runner
   // is sufficient since behavior is a simple function of the arg.
   if (name == "basic_div_by_zero_guarded") {
@@ -76,7 +76,7 @@ int dispatch(const std::string& name, int argc, char** argv) {
   }
   if (name == "basic_null_write2") {
     // Smoke runner always invokes this with a null pointer, matching
-    // the tests.rs expectation. A non-null arg is not currently
+    // the smoke_test expectation. A non-null arg is not currently
     // reachable via the CLI.
     (void)basic_null_write2(nullptr);
     return 0;
@@ -98,7 +98,7 @@ int dispatch(const std::string& name, int argc, char** argv) {
   // sandbox_primitive_array_index_unchecked_unsafe, and
   // sandbox_array_index_checked are driven by the dedicated AFL
   // harnesses stage2_afl_unchecked_indexed and
-  // stage2_afl_clamped_indexed. See docs/host-validators-map.md.
+  // stage2_afl_clamped_indexed.
 
   std::cerr << "unknown case: " << name << "\n";
   return 2;

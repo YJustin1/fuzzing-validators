@@ -1,4 +1,4 @@
-// Mirrors host.cpp::basic_div_by_zero2.
+// Division sink with unchecked denominator (division-by-zero oracle).
 // The fuzzer-controlled value is used as a divisor with no validator
 // (unchecked_validator). Expected behavior: oracle fires when the
 // offset is zero.

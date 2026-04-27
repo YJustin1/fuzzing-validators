@@ -1,4 +1,4 @@
-// Mirrors host.cpp::basic_div_by_zero_guarded.
+// Same sink as div_by_zero; nonzero_validator rejects denominator == 0.
 // nonzero_validator rejects zero denominators before the sink runs,
 // preventing the division-by-zero. Expected behavior: no crashes.
 // Calibration partner for stage2_afl_div_by_zero.

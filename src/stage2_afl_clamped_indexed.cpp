@@ -1,4 +1,4 @@
-// Mirrors host.cpp::sandbox_array_index_checked.
+// Clamp invalid indices before use (sanitize instead of reject).
 // A clamping transform runs at the RLBox boundary: out-of-range indices
 // are rewritten to a safe default (kSmallIndexDefault = 3) rather than
 // rejected. Expected behavior: no crashes; this target is a calibration

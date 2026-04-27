@@ -26,21 +26,18 @@ inline bool length_only_validator(const Candidate& c) {
   return c.length >= 0 && c.length < static_cast<int32_t>(kBufferSize);
 }
 
-// Mirrors UNSAFE_unverified(): no validation at all. Used to port the
-// sandbox_array_index_unchecked_* family from host.cpp, where the host
-// consumes a sandbox-provided value directly.
+// Mirrors UNSAFE_unverified(): no validation at all. Used to model sandbox
+// output consumed with no checks (e.g. unguarded small-index reads).
 inline bool unchecked_validator(const Candidate& /*c*/) {
   return true;
 }
 
-// Guards a division sink. Accepts only non-zero offsets; mirrors the
-// pattern in host.cpp::basic_div_by_zero_guarded.
+// Guards a division sink. Accepts only non-zero offsets (guarded divide).
 inline bool nonzero_validator(const Candidate& c) {
   return c.offset != 0;
 }
 
-// Clamping transform used to model the copy_and_verify lambda in
-// host.cpp::sandbox_array_index_checked, which rewrites out-of-range
+// Clamping transform: a copy_and_verify style check that rewrites out-of-range
 // indices to a safe default rather than rejecting them. This is a
 // different mitigation shape than the boolean validators above: the
 // value is *modified* at the RLBox boundary so the sink never sees an

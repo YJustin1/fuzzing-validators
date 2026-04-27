@@ -45,7 +45,7 @@ target_link_libraries(stage2_afl_good_validator PRIVATE stage1_core)
 add_executable(stage2_afl_length_only_indexed src/stage2_afl_length_only_indexed.cpp)
 target_link_libraries(stage2_afl_length_only_indexed PRIVATE stage1_core)
 
-# Host.cpp-derived targets (mirror docs/host.cpp + docs/tests.rs expectations).
+# Extra Stage 2 targets (indexed / division sinks).
 
 add_executable(stage2_unchecked_indexed src/stage2_unchecked_indexed.cpp)
 target_link_libraries(stage2_unchecked_indexed PRIVATE stage1_core)
@@ -71,6 +71,6 @@ target_link_libraries(stage2_afl_div_by_zero PRIVATE stage1_core)
 add_executable(stage2_afl_div_by_zero_guarded src/stage2_afl_div_by_zero_guarded.cpp)
 target_link_libraries(stage2_afl_div_by_zero_guarded PRIVATE stage1_core)
 
-# Smoke-test driver for constant-behavior cases ported from docs/host.cpp.
+# Smoke-test driver for host_examples.hpp (paired with scripts/smoke_test.py).
 add_executable(smoke_host_examples src/smoke_host_examples.cpp)
 target_link_libraries(smoke_host_examples PRIVATE stage1_core)

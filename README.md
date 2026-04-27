@@ -22,7 +22,7 @@ input source  ->  RLBox taint/copy_and_verify  ->  validator  ->  sink  ->  orac
 ```
 
 - **validator** — host-side logic that decides whether the sandbox value is safe to use. The project ships a known-good validator and two deliberately-weak ones for calibration.
-- **sink** — simulated trusted use-site. Two are shipped: a range writer (`sink_use`) and an indexed reader (`sink_indexed_read`). The two reveal *different* validator weaknesses — sufficiency is sink-dependent.
+- **sink** — simulated trusted use-site. Several are shipped (e.g. `sink_use`, `sink_indexed_read`, `sink_indexed_read_small`, `sink_divide`). Different sinks stress *different* validators — sufficiency is sink-dependent.
 - **oracle** — detects when an accepted value causes unsafe behavior and aborts so AFL++ records a crash.
 
 ## Quickstart
@@ -52,7 +52,6 @@ For anything deeper, follow the docs below.
 | [`docs/rlbox-contract.md`](docs/rlbox-contract.md) | Project scope, pipeline definition, stage boundaries, non-goals |
 | [`docs/stage2-fuzzing-explainer.md`](docs/stage2-fuzzing-explainer.md) | What Stage 2 actually fuzzes, persistent mode, sink-dependent sufficiency demo |
 | [`docs/file-guide.md`](docs/file-guide.md) | What each source file does and why it exists |
-| [`docs/host-validators-map.md`](docs/host-validators-map.md) | How `docs/host.cpp` / `docs/tests.rs` cases map to our AFL targets and the smoke runner |
 | [`docs/stage2-campaign-results.md`](docs/stage2-campaign-results.md) | Most recent all-targets campaign: crashes per validator, time-to-first-crash, coverage |
 
 ## Layout
@@ -60,11 +59,11 @@ For anything deeper, follow the docs below.
 ```
 src/
   core/                    # candidate, parsers, validators, sinks, oracle,
-                           # RLBox adapter, host.cpp ports (host_examples.hpp)
+                           # RLBox adapter, smoke examples (host_examples.hpp)
   stage1_*.cpp             # random-generation harnesses
   stage2_*.cpp             # byte-driven file-input reproducers
   stage2_afl_*.cpp         # AFL++ entrypoints (persistent mode, stdin fallback)
-  smoke_host_examples.cpp  # smoke driver for host.cpp constant/arg-driven cases
+  smoke_host_examples.cpp  # smoke driver for host_examples constant/arg cases
 scripts/
   gen_seeds.py             # boundary-focused seed corpus generator
   run_afl.sh               # container-side campaign runner (build + fuzz + summary)
@@ -72,7 +71,7 @@ scripts/
   fuzz_all.sh / fuzz_all.ps1  # batch runner: every Stage 2 target, shared budget
   report.py                # per-campaign metrics + crash bucketing by oracle reason
   report.ps1               # Windows wrapper for report.py (text or markdown)
-  smoke_test.py            # drives smoke_host_examples against tests.rs expectations
+  smoke_test.py            # drives smoke_host_examples (expectations listed in the script)
 seeds/                     # AFL++ seed corpus (generated)
 results/                   # campaign logs + text reports (generated)
 third_party/rlbox/         # RLBox submodule
@@ -106,10 +105,9 @@ Latest all-targets run (7 campaigns × 300s each) is in [`docs/stage2-campaign-r
              out_div_by_zero,out_div_by_zero_guarded
 ```
 
-## Host.cpp parity
+## Smoke examples
 
-We also port every function in `docs/host.cpp` (and its `docs/tests.rs` expectations) onto one of our runners. The mapping is tracked in [`docs/host-validators-map.md`](docs/host-validators-map.md); the short version:
+Illustrative host-side examples live in `src/core/host_examples.hpp`. `smoke_host_examples` runs them by name; `scripts/smoke_test.py` encodes expected safe vs trap outcomes for automation.
 
-- Constant-behavior cases → `smoke_host_examples` + `scripts/smoke_test.py`
-- Arg-driven cases → same smoke runner with a pinned argument
-- RLBox-specific `sandbox_array_index_*` → `stage2_afl_unchecked_indexed` and `stage2_afl_clamped_indexed`
+- Constant-behavior and arg-driven cases → smoke runner
+- Full RLBox `Candidate` pipeline for indexing → `stage2_afl_unchecked_indexed` and `stage2_afl_clamped_indexed` (not the smoke binary)

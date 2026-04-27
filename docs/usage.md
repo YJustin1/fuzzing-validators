@@ -96,14 +96,14 @@ bash scripts/run_afl.sh stage2_afl_div_by_zero_guarded      out_div_g     300
 | `stage2_afl_bad_validator` | `bad_validator` (offset-bounded only) | `sink_use` (range write) | crashes found |
 | `stage2_afl_good_validator` | `good_validator` (strict + overflow-safe) | `sink_use` | no crashes |
 | `stage2_afl_length_only_indexed` | `length_only_validator` | `sink_indexed_read` (16-elem) | crashes found |
-| `stage2_afl_unchecked_indexed` | `unchecked_validator` (no-op) | `sink_indexed_read_small` (4-elem, matches host.cpp) | crashes found |
+| `stage2_afl_unchecked_indexed` | `unchecked_validator` (no-op) | `sink_indexed_read_small` (4-elem, same size as `host_examples` small table) | crashes found |
 | `stage2_afl_clamped_indexed` | clamp at the boundary + `unchecked_validator` | `sink_indexed_read_small` | no crashes |
 | `stage2_afl_div_by_zero` | `unchecked_validator` | `sink_divide` | crashes found |
 | `stage2_afl_div_by_zero_guarded` | `nonzero_validator` | `sink_divide` | no crashes |
 
 The point of the whole exercise is **sink-dependent sufficiency**: `length_only_validator` is fine for some sinks but unsafe when `offset` is used as an array index; `unchecked_validator` is deliberately unsafe and `clamped_indexed` demonstrates a different mitigation pattern (sanitize instead of reject). The division pair does the same calibration on a non-bounds bug class.
 
-For a full mapping back to `docs/host.cpp` / `docs/tests.rs`, see [`host-validators-map.md`](./host-validators-map.md).
+Constant-behavior and arg-driven examples live in `src/core/host_examples.hpp` and are run by `smoke_host_examples` / `scripts/smoke_test.py` (expected outcomes are listed in the script). Full `Candidate`-through-RLBox indexing exercises use only the AFL harnesses above.
 
 ### 4. Watch the campaign
 
@@ -175,9 +175,9 @@ Or from Windows, using the build-vs reproducers (same logic, different compiler)
 
 Exit code will be non-zero and stderr will contain the oracle's `FAIL: validator accepted unsafe value` line with the specific `(offset, length)` that tripped it.
 
-## Smoke Test (docs/host.cpp parity check)
+## Smoke Test
 
-`smoke_host_examples` + `scripts/smoke_test.py` run the constant-behavior and arg-driven cases from `docs/host.cpp` and compare runtime outcomes to `docs/tests.rs` expectations:
+`smoke_host_examples` + `scripts/smoke_test.py` run the constant-behavior and arg-driven cases declared in [`src/core/host_examples.hpp`](../src/core/host_examples.hpp):
 
 ```powershell
 python scripts\smoke_test.py
@@ -185,7 +185,7 @@ python scripts\smoke_test.py
 
 This is a parity check, not a fuzz campaign. Expect all "reliable" cases to PASS; the ASan-only rows (stack-OOB reads/writes) will typically FAIL on MSVC Debug without sanitizers — that's documented and expected. For a fair score on those rows, build with `-DENABLE_SANITIZERS=ON` on Linux and pass `--binary`.
 
-RLBox-specific (`sandbox_array_index_*`) cases from `host.cpp` are **not** in the smoke runner — they're covered by `stage2_afl_unchecked_indexed` and `stage2_afl_clamped_indexed` instead. See [`host-validators-map.md`](./host-validators-map.md) for the full mapping.
+RLBox-specific indexing (`sandbox_array_index_*` patterns) are **not** in the smoke runner — use `stage2_afl_unchecked_indexed` and `stage2_afl_clamped_indexed` instead.
 
 ## Related Documentation
 
@@ -193,4 +193,3 @@ RLBox-specific (`sandbox_array_index_*`) cases from `host.cpp` are **not** in th
 - [`docs/rlbox-contract.md`](./rlbox-contract.md) — project scope, pipeline definition, stage boundaries
 - [`docs/stage2-fuzzing-explainer.md`](./stage2-fuzzing-explainer.md) — what Stage 2 actually fuzzes, persistent mode, sink-dependent sufficiency demo
 - [`docs/file-guide.md`](./file-guide.md) — what each source file does
-- [`docs/host-validators-map.md`](./host-validators-map.md) — how host.cpp / tests.rs map to our targets
