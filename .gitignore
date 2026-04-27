@@ -1,0 +1,66 @@
+# =============================================================
+# Build outputs (CMake / Visual Studio / Ninja / AFL)
+# =============================================================
+build/
+build-*/
+out/
+out_*/
+
+# CMake / VS / Ninja stragglers if they ever appear at the root
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CMakeUserPresets.json
+*.sln
+*.vcxproj
+*.vcxproj.user
+*.vcxproj.filters
+*.tlog
+*.ilk
+*.pdb
+*.obj
+*.exe
+*.exp
+*.lib
+*.dll
+*.dSYM/
+compile_commands.json
+
+# =============================================================
+# AFL++ runtime outputs and per-campaign logs
+# =============================================================
+# Per-target AFL output dirs are matched by `out_*/` above.
+# Per-run logs (stderr captured by scripts/fuzz_all.sh) are noisy
+# and rotate every campaign; keep the curated reports in docs/
+# and results/*.txt instead.
+results/logs/
+results/**/*.log
+
+# Ad-hoc reproducer inputs we generate on the fly during spot-checks
+tmp_*.bin
+
+# =============================================================
+# Editor / IDE / OS metadata
+# =============================================================
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# =============================================================
+# Python caches (smoke_test.py, gen_seeds.py, report.py)
+# =============================================================
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# =============================================================
+# Things we DO want tracked, restated for clarity
+# =============================================================
+# !seeds/                # explicit corpus, kept in git
+# !results/*.txt         # curated text reports
+# !docs/host.cpp         # *.exe glob doesn't match this; just a reminder

@@ -1,0 +1,124 @@
+=== stage2_afl_bad_validator  (out_bad_validator) ===
+  Campaign:
+    run_time          : 5m 24s
+    execs_done        : 280,304
+    execs_per_sec     : 862.73
+    edges_found       : 42 / 186 (22.58%)
+    stability         : 83.33%
+    corpus_count      : 17
+  Crashes:
+    saved_crashes     : 6
+    time-to-first     : 0.12s  (earliest crash)
+    time-to-last      : 1.70s
+    execs-to-first    : 98
+    by oracle reason:
+      [  6] range_out_of_bounds
+              offset=1 length=4194304  (id:000000,sig:06,src:000000,time:121,execs:98...)
+              offset=1 length=-16776960  (id:000001,sig:06,src:000000,time:373,execs:11...)
+              offset=127 length=127  (id:000002,sig:06,src:000010,time:842,execs:21...)
+              ... and 3 more
+
+=== stage2_afl_good_validator  (out_good_validator) ===
+  Campaign:
+    run_time          : 5m 25s
+    execs_done        : 8,993,914
+    execs_per_sec     : 27657.75
+    edges_found       : 49 / 190 (25.79%)
+    stability         : 83.67%
+    corpus_count      : 18
+  Crashes:
+    saved_crashes     : 0
+
+=== stage2_afl_length_only_indexed  (out_length_only_indexed) ===
+  Campaign:
+    run_time          : 5m 25s
+    execs_done        : 46,792
+    execs_per_sec     : 143.87
+    edges_found       : 40 / 182 (21.98%)
+    stability         : 82.50%
+    corpus_count      : 15
+  Crashes:
+    saved_crashes     : 4
+    time-to-first     : 0.11s  (earliest crash)
+    time-to-last      : 0.85s
+    execs-to-first    : 79
+    by oracle reason:
+      [  4] index_out_of_bounds
+              offset=97 length=17  (id:000000,sig:06,src:000000,time:109,execs:79...)
+              offset=256 length=0  (id:000001,sig:06,src:000000,time:205,execs:81...)
+              offset=65280 length=51  (id:000002,sig:06,src:000000,time:522,execs:15...)
+              ... and 1 more
+
+=== stage2_afl_unchecked_indexed  (out_unchecked_indexed) ===
+  Campaign:
+    run_time          : 5m 25s
+    execs_done        : 19,387
+    execs_per_sec     : 59.59
+    edges_found       : 38 / 180 (21.11%)
+    stability         : 81.58%
+    corpus_count      : 14
+  Crashes:
+    saved_crashes     : 4
+    time-to-first     : 0.10s  (earliest crash)
+    time-to-last      : 2.05s
+    execs-to-first    : 79
+    by oracle reason:
+      [  4] small_index_out_of_bounds
+              offset=97 length=17  (id:000000,sig:06,src:000001,time:103,execs:79...)
+              offset=256 length=1  (id:000001,sig:06,src:000001,time:203,execs:81...)
+              offset=-201261055 length=57088  (id:000002,sig:06,src:000001,time:549,execs:10...)
+              ... and 1 more
+
+=== stage2_afl_clamped_indexed  (out_clamped_indexed) ===
+  Campaign:
+    run_time          : 5m 25s
+    execs_done        : 7,450,176
+    execs_per_sec     : 22882.22
+    edges_found       : 41 / 175 (23.43%)
+    stability         : 80.49%
+    corpus_count      : 16
+  Crashes:
+    saved_crashes     : 0
+
+=== stage2_afl_div_by_zero  (out_div_by_zero) ===
+  Campaign:
+    run_time          : 5m 25s
+    execs_done        : 173,024
+    execs_per_sec     : 532.13
+    edges_found       : 38 / 180 (21.11%)
+    stability         : 81.58%
+    corpus_count      : 15
+  Crashes:
+    saved_crashes     : 4
+    time-to-first     : 0.13s  (earliest crash)
+    time-to-last      : 1.19s
+    execs-to-first    : 139
+    by oracle reason:
+      [  4] divide_by_zero
+              offset=0 length=0  (id:000000,sig:06,src:000000,time:133,execs:13...)
+              offset=0 length=17  (id:000001,sig:06,src:000000,time:382,execs:32...)
+              offset=0 length=34  (id:000002,sig:06,src:000000,time:674,execs:45...)
+              ... and 1 more
+
+=== stage2_afl_div_by_zero_guarded  (out_div_by_zero_guarded) ===
+  Campaign:
+    run_time          : 5m 25s
+    execs_done        : 7,028,648
+    execs_per_sec     : 21588.48
+    edges_found       : 43 / 177 (24.29%)
+    stability         : 81.40%
+    corpus_count      : 17
+  Crashes:
+    saved_crashes     : 0
+
+============================================================
+Overview
+============================================================
+target                                    crashes  reasons
+stage2_afl_bad_validator                        6  range_out_of_bounds(6)
+stage2_afl_good_validator                       0  -
+stage2_afl_length_only_indexed                  4  index_out_of_bounds(4)
+stage2_afl_unchecked_indexed                    4  small_index_out_of_bounds(4)
+stage2_afl_clamped_indexed                      0  -
+stage2_afl_div_by_zero                          4  divide_by_zero(4)
+stage2_afl_div_by_zero_guarded                  0  -

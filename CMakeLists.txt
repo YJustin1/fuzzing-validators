@@ -32,3 +32,45 @@ target_link_libraries(stage2_bad_validator PRIVATE stage1_core)
 
 add_executable(stage2_good_validator src/stage2_good_validator.cpp)
 target_link_libraries(stage2_good_validator PRIVATE stage1_core)
+
+add_executable(stage2_length_only_indexed src/stage2_length_only_indexed.cpp)
+target_link_libraries(stage2_length_only_indexed PRIVATE stage1_core)
+
+add_executable(stage2_afl_bad_validator src/stage2_afl_bad_validator.cpp)
+target_link_libraries(stage2_afl_bad_validator PRIVATE stage1_core)
+
+add_executable(stage2_afl_good_validator src/stage2_afl_good_validator.cpp)
+target_link_libraries(stage2_afl_good_validator PRIVATE stage1_core)
+
+add_executable(stage2_afl_length_only_indexed src/stage2_afl_length_only_indexed.cpp)
+target_link_libraries(stage2_afl_length_only_indexed PRIVATE stage1_core)
+
+# Host.cpp-derived targets (mirror docs/host.cpp + docs/tests.rs expectations).
+
+add_executable(stage2_unchecked_indexed src/stage2_unchecked_indexed.cpp)
+target_link_libraries(stage2_unchecked_indexed PRIVATE stage1_core)
+
+add_executable(stage2_clamped_indexed src/stage2_clamped_indexed.cpp)
+target_link_libraries(stage2_clamped_indexed PRIVATE stage1_core)
+
+add_executable(stage2_div_by_zero src/stage2_div_by_zero.cpp)
+target_link_libraries(stage2_div_by_zero PRIVATE stage1_core)
+
+add_executable(stage2_div_by_zero_guarded src/stage2_div_by_zero_guarded.cpp)
+target_link_libraries(stage2_div_by_zero_guarded PRIVATE stage1_core)
+
+add_executable(stage2_afl_unchecked_indexed src/stage2_afl_unchecked_indexed.cpp)
+target_link_libraries(stage2_afl_unchecked_indexed PRIVATE stage1_core)
+
+add_executable(stage2_afl_clamped_indexed src/stage2_afl_clamped_indexed.cpp)
+target_link_libraries(stage2_afl_clamped_indexed PRIVATE stage1_core)
+
+add_executable(stage2_afl_div_by_zero src/stage2_afl_div_by_zero.cpp)
+target_link_libraries(stage2_afl_div_by_zero PRIVATE stage1_core)
+
+add_executable(stage2_afl_div_by_zero_guarded src/stage2_afl_div_by_zero_guarded.cpp)
+target_link_libraries(stage2_afl_div_by_zero_guarded PRIVATE stage1_core)
+
+# Smoke-test driver for constant-behavior cases ported from docs/host.cpp.
+add_executable(smoke_host_examples src/smoke_host_examples.cpp)
+target_link_libraries(smoke_host_examples PRIVATE stage1_core)

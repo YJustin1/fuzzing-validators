@@ -1,104 +1,115 @@
-# RLBox Validator Fuzzing Prototypes
+# RLBox Validator Fuzzing
 
-This repository bootstraps the proposal: validate RLBox-style host-side validators by checking whether values that pass validation can still cause unsafe behavior at a trusted use-site.
+Test the claim: **a value that passes an RLBox host-side validator can still cause unsafe behavior at a trusted use-site.** When that happens, the validator is insufficient for that sink.
 
-## Scope
+This repository evolves a staged prototype that surfaces those insufficiencies — starting with random input generation and progressing to coverage-guided fuzzing with AFL++.
 
-- Stage 1 implemented: random generation against validator + sink + oracle.
-- Stage 2-4 are outlined for incremental follow-up.
-- Uses lightweight C++ harnesses to calibrate detection with:
-  - known-bad validator(s) that should fail
-  - known-good validator(s) that should hold
+## Status
 
-## Quick Start (Windows + clang++)
+| Stage | Description | Status |
+| --- | --- | --- |
+| 1 | Random generation against validator + sink + oracle | implemented |
+| 2 | Coverage-guided fuzzing (AFL++), persistent mode, multiple sinks, crash reporting | implemented |
+| 3 | Corpus replay from real library outputs | planned |
+| 4 | Integrated end-to-end: library input mutation drives validator and sink | planned |
 
-1. Build:
+## Pipeline
 
-```powershell
-cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=RelWithDebInfo
-cmake --build build
+Every stage tests the same pipeline. The unit under test is a `Candidate { offset, length }` modeled as a value emitted across the RLBox sandbox boundary:
+
+```
+input source  ->  RLBox taint/copy_and_verify  ->  validator  ->  sink  ->  oracle
 ```
 
-2. Run bad validator target:
+- **validator** — host-side logic that decides whether the sandbox value is safe to use. The project ships a known-good validator and two deliberately-weak ones for calibration.
+- **sink** — simulated trusted use-site. Two are shipped: a range writer (`sink_use`) and an indexed reader (`sink_indexed_read`). The two reveal *different* validator weaknesses — sufficiency is sink-dependent.
+- **oracle** — detects when an accepted value causes unsafe behavior and aborts so AFL++ records a crash.
+
+## Quickstart
+
+Already have Visual Studio 2022 and Docker Desktop? Three commands gets you a campaign:
 
 ```powershell
-.\build\stage1_bad_validator.exe 200000
+git submodule update --init --recursive
+cmake -S . -B build-vs -G "Visual Studio 17 2022" ; cmake --build build-vs --config Debug
+.\scripts\fuzz.ps1 stage2_afl_bad_validator
 ```
 
-3. Run good validator target:
+See a report of what was found:
 
 ```powershell
-.\build\stage1_good_validator.exe 200000
+.\scripts\report.ps1
 ```
 
-## Expected Behavior
+For anything deeper, follow the docs below.
 
-- `stage1_bad_validator` should usually discover a failing input quickly.
-- `stage1_good_validator` should run cleanly under the same budget.
+## Documentation
 
-## Stage 2 (Byte-Driven Harness)
-
-Stage 2 accepts raw bytes and parses them into a `Candidate` before RLBox boundary handling.
-This matches coverage-guided fuzzing workflows (e.g., AFL++) where each testcase is a byte sequence.
-
-```powershell
-.\build-vs\RelWithDebInfo\stage2_bad_validator.exe .\path\to\input.bin
-.\build-vs\RelWithDebInfo\stage2_good_validator.exe .\path\to\input.bin
-```
-
-## Sanitizers
-
-For stronger bug signals, compile with ASan/UBSan where toolchain support exists:
-
-```powershell
-cmake -S . -B build-asan -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DENABLE_SANITIZERS=ON
-cmake --build build-asan
-```
-
-## Next Steps
-
-- Stage 2: AFL++ harness target for coverage-guided mutation.
-- Stage 3: corpus replay from real library outputs.
-- Stage 4: integrated end-to-end target where library input mutation drives validator and sink directly.
-# RLBox Validator Fuzzing (C++)
-
-This project is a C++ stage-by-stage prototype for testing RLBox-style validators.
-
-## Threat Model
-
-- Attacker can control values returned across the sandbox boundary.
-- RLBox backend isolation is assumed to hold.
-- A validator is insufficient if a value passes validation and later violates sink safety.
+| Doc | What's in it |
+| --- | --- |
+| [`docs/build.md`](docs/build.md) | Build flavors (MSVC local, AFL++ in Docker, sanitizers), prerequisites, troubleshooting |
+| [`docs/usage.md`](docs/usage.md) | How to run Stage 1, launch AFL campaigns, reproduce a crash, read the crash report |
+| [`docs/rlbox-contract.md`](docs/rlbox-contract.md) | Project scope, pipeline definition, stage boundaries, non-goals |
+| [`docs/stage2-fuzzing-explainer.md`](docs/stage2-fuzzing-explainer.md) | What Stage 2 actually fuzzes, persistent mode, sink-dependent sufficiency demo |
+| [`docs/file-guide.md`](docs/file-guide.md) | What each source file does and why it exists |
+| [`docs/host-validators-map.md`](docs/host-validators-map.md) | How `docs/host.cpp` / `docs/tests.rs` cases map to our AFL targets and the smoke runner |
+| [`docs/stage2-campaign-results.md`](docs/stage2-campaign-results.md) | Most recent all-targets campaign: crashes per validator, time-to-first-crash, coverage |
 
 ## Layout
 
-- `harness/`: value model, parser, sink, oracle, and run engine
-- `validators/`: one known-good and two known-bad validators
-- `stages/`: stage executables (`stage1` through `stage4`)
-- `scripts/`: PowerShell run scripts and report helper
-- `results/`: per-stage JSON artifacts and summary
-
-## Build
-
-```powershell
-cmake -S . -B build
-cmake --build build --config Release
+```
+src/
+  core/                    # candidate, parsers, validators, sinks, oracle,
+                           # RLBox adapter, host.cpp ports (host_examples.hpp)
+  stage1_*.cpp             # random-generation harnesses
+  stage2_*.cpp             # byte-driven file-input reproducers
+  stage2_afl_*.cpp         # AFL++ entrypoints (persistent mode, stdin fallback)
+  smoke_host_examples.cpp  # smoke driver for host.cpp constant/arg-driven cases
+scripts/
+  gen_seeds.py             # boundary-focused seed corpus generator
+  run_afl.sh               # container-side campaign runner (build + fuzz + summary)
+  fuzz.ps1                 # Windows wrapper: one command from host to container
+  fuzz_all.sh / fuzz_all.ps1  # batch runner: every Stage 2 target, shared budget
+  report.py                # per-campaign metrics + crash bucketing by oracle reason
+  report.ps1               # Windows wrapper for report.py (text or markdown)
+  smoke_test.py            # drives smoke_host_examples against tests.rs expectations
+seeds/                     # AFL++ seed corpus (generated)
+results/                   # campaign logs + text reports (generated)
+third_party/rlbox/         # RLBox submodule
+docs/                      # see table above
 ```
 
-## Run All Stages
+## Threat Model
+
+- Attacker can control any value returned across the sandbox boundary.
+- RLBox backend isolation is assumed to hold.
+- A validator is **insufficient** if the attacker can construct a value that (a) passes validation and (b) causes unsafe behavior at the sink.
+
+## Calibration Design
+
+Every AFL target is paired with its opposite — a known-good and a known-bad version. A result is only meaningful when it comes with its calibration partner:
+
+- `stage2_afl_bad_validator` should find crashes; `stage2_afl_good_validator` should not (under the same budget, against the same sink).
+- `stage2_afl_length_only_indexed` should find crashes; the strong `good_validator` would be clean against the same indexed sink.
+- `stage2_afl_unchecked_indexed` should find crashes; `stage2_afl_clamped_indexed` (clamping `copy_and_verify`) should not.
+- `stage2_afl_div_by_zero` should find crashes; `stage2_afl_div_by_zero_guarded` should not.
+
+Without both sides you can't tell whether a zero-crash result means the validator is sound or the harness is broken.
+
+Latest all-targets run (7 campaigns × 300s each) is in [`docs/stage2-campaign-results.md`](docs/stage2-campaign-results.md). Reproduce with:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\run_all.ps1
+.\scripts\fuzz_all.ps1 -BudgetSeconds 300
+.\scripts\report.ps1 -Format markdown -Output docs/stage2-campaign-results.md `
+    -OutDirs out_bad_validator,out_good_validator,out_length_only_indexed,`
+             out_unchecked_indexed,out_clamped_indexed,`
+             out_div_by_zero,out_div_by_zero_guarded
 ```
 
-## Per-Stage Commands
+## Host.cpp parity
 
-```powershell
-.\build\Release\stage1.exe --runs 3 --budget-seconds 3
-.\build\Release\stage2.exe --runs 3 --budget-seconds 3
-.\build\Release\stage3.exe --runs 3 --budget-seconds 3 --capture-count 2000
-.\build\Release\stage4.exe --runs 3 --budget-seconds 3
-```
+We also port every function in `docs/host.cpp` (and its `docs/tests.rs` expectations) onto one of our runners. The mapping is tracked in [`docs/host-validators-map.md`](docs/host-validators-map.md); the short version:
 
-Each run writes metrics to `results/stageX/` including `ttff_seconds`, `etff`,
-`ufph`, `ufc`, and `reproduction_stability`.
+- Constant-behavior cases → `smoke_host_examples` + `scripts/smoke_test.py`
+- Arg-driven cases → same smoke runner with a pinned argument
+- RLBox-specific `sandbox_array_index_*` → `stage2_afl_unchecked_indexed` and `stage2_afl_clamped_indexed`
