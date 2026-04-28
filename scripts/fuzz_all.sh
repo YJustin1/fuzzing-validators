@@ -26,6 +26,8 @@ TARGETS=(
   stage2_afl_clamped_indexed
   stage2_afl_div_by_zero
   stage2_afl_div_by_zero_guarded
+  stage2_afl_four_sinks_one_bad
+  stage2_afl_four_sinks_all_good
 )
 
 REPROS=(
@@ -36,6 +38,8 @@ REPROS=(
   stage2_clamped_indexed
   stage2_div_by_zero
   stage2_div_by_zero_guarded
+  stage2_four_sinks_one_bad
+  stage2_four_sinks_all_good
 )
 
 # Seed corpus: generated if missing.

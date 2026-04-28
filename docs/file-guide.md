@@ -27,6 +27,8 @@ Byte file → `candidate_from_bytes` → RLBox path → validator + sink. Used t
 - `src/stage2_clamped_indexed.cpp` — `clamp_small_index` + `unchecked_validator` + same small sink.
 - `src/stage2_div_by_zero.cpp` — `unchecked_validator` + `sink_divide`.
 - `src/stage2_div_by_zero_guarded.cpp` — `nonzero_validator` + `sink_divide`.
+- `src/stage2_four_sinks_one_bad.cpp` — four sink/validator stages; last is `bad_validator` + `sink_use` (see `run_engine.hpp`).
+- `src/stage2_four_sinks_all_good.cpp` — same four sinks; `good_validator` on the mem path (calibration).
 
 ### Stage 2 AFL++ (`__AFL_LOOP` persistent mode)
 
@@ -34,6 +36,7 @@ Byte file → `candidate_from_bytes` → RLBox path → validator + sink. Used t
 - `src/stage2_afl_length_only_indexed.cpp` — weak length-only validator vs indexed sink.
 - `src/stage2_afl_unchecked_indexed.cpp` vs `stage2_afl_clamped_indexed.cpp` — unchecked vs clamp mitigation on `sink_indexed_read_small`.
 - `src/stage2_afl_div_by_zero.cpp` vs `stage2_afl_div_by_zero_guarded.cpp` — division oracle calibration pair.
+- `src/stage2_afl_four_sinks_one_bad.cpp` vs `stage2_afl_four_sinks_all_good.cpp` — AFL entrypoints for the four-sink library chain.
 
 ### Smoke examples
 
@@ -45,9 +48,9 @@ Byte file → `candidate_from_bytes` → RLBox path → validator + sink. Used t
 - `src/core/candidate.hpp` — `Candidate { offset, length }`; Stage 1 random helpers.
 - `src/core/byte_parser.hpp` — raw bytes → `Candidate`.
 - `src/core/rlbox_adapter.hpp` — noop RLBox sandbox plumbing (`invoke_sandbox_function`, `copy_and_verify`).
-- `src/core/validators.hpp` — `bad_validator`, `good_validator`, `length_only_validator`, plus `unchecked_validator`, `nonzero_validator`, `clamp_small_index`.
+- `src/core/validators.hpp` — `bad_validator`, `good_validator`, `length_only_validator`, `unchecked_validator`, `nonzero_validator`, `clamp_small_index`, `good_index_16_validator`, `good_index_4_validator`.
 - `src/core/sink_oracle.hpp` — `sink_use`, `sink_indexed_read`, `sink_indexed_read_small`, `sink_divide`; `oracle_fail` aborts for AFL.
-- `src/core/run_engine.hpp` — `run_stage1`, `run_stage2_case_with_sink`, `run_stage2_case_with_clamp`.
+- `src/core/run_engine.hpp` — `run_stage1`, `run_stage2_case_with_sink`, `run_stage2_case_with_clamp`, `run_stage2_four_sink_chain_one_bad` / `run_stage2_four_sink_chain_all_good`.
 
 ## Scripts & corpus
 

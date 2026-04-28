@@ -113,4 +113,63 @@ inline int run_stage2_case_with_clamp(const std::vector<uint8_t>& input,
                                     clamp, validator, sink);
 }
 
+// Library-style pipeline: four separate use-sites, each with its own validator
+// before its sink. The first three pair good validators with existing sinks;
+// the last stage uses bad_validator (offset-only) before sink_use — a common
+// shape when one API is checked incorrectly while neighbors are fine.
+inline int run_stage2_four_sink_chain_one_bad(const uint8_t* data, std::size_t size) {
+  RlSandbox sandbox;
+  sandbox.create_sandbox();
+
+  const Candidate parsed = candidate_from_bytes(data, size);
+  const Candidate c = get_candidate_via_rlbox(sandbox, parsed);
+
+  if (good_index_16_validator(c)) {
+    sink_indexed_read(c);
+  }
+  if (good_index_4_validator(c)) {
+    sink_indexed_read_small(c);
+  }
+  if (nonzero_validator(c)) {
+    sink_divide(c);
+  }
+  if (bad_validator(c)) {
+    sink_use(c);
+  }
+
+  sandbox.destroy_sandbox();
+  return 0;
+}
+
+inline int run_stage2_four_sink_chain_all_good(const uint8_t* data, std::size_t size) {
+  RlSandbox sandbox;
+  sandbox.create_sandbox();
+
+  const Candidate parsed = candidate_from_bytes(data, size);
+  const Candidate c = get_candidate_via_rlbox(sandbox, parsed);
+
+  if (good_index_16_validator(c)) {
+    sink_indexed_read(c);
+  }
+  if (good_index_4_validator(c)) {
+    sink_indexed_read_small(c);
+  }
+  if (nonzero_validator(c)) {
+    sink_divide(c);
+  }
+  if (good_validator(c)) {
+    sink_use(c);
+  }
+
+  sandbox.destroy_sandbox();
+  return 0;
+}
+
+inline int run_stage2_four_sink_chain_one_bad(const std::vector<uint8_t>& input) {
+  return run_stage2_four_sink_chain_one_bad(input.data(), input.size());
+}
+inline int run_stage2_four_sink_chain_all_good(const std::vector<uint8_t>& input) {
+  return run_stage2_four_sink_chain_all_good(input.data(), input.size());
+}
+
 }  // namespace fuzzing

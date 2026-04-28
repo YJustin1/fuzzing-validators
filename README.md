@@ -92,17 +92,19 @@ Every AFL target is paired with its opposite — a known-good and a known-bad ve
 - `stage2_afl_length_only_indexed` should find crashes; the strong `good_validator` would be clean against the same indexed sink.
 - `stage2_afl_unchecked_indexed` should find crashes; `stage2_afl_clamped_indexed` (clamping `copy_and_verify`) should not.
 - `stage2_afl_div_by_zero` should find crashes; `stage2_afl_div_by_zero_guarded` should not.
+- `stage2_afl_four_sinks_one_bad` models four library use-sites in order (index-16 read, small-index read, divide, then `sink_use`), each with its own validator — the first three pairs are sufficient; the last uses `bad_validator` before `sink_use`. The control `stage2_afl_four_sinks_all_good` is the same four sinks with a correct `good_validator` on the last. The first should find `range_out_of_bounds` on the final mem sink; the second should not.
 
 Without both sides you can't tell whether a zero-crash result means the validator is sound or the harness is broken.
 
-Latest all-targets run (7 campaigns × 300s each) is in [`docs/stage2-campaign-results.md`](docs/stage2-campaign-results.md). Reproduce with:
+Latest all-targets run is in [`docs/stage2-campaign-results.md`](docs/stage2-campaign-results.md) (count may lag if new targets were added). Reproduce with:
 
 ```powershell
 .\scripts\fuzz_all.ps1 -BudgetSeconds 300
 .\scripts\report.ps1 -Format markdown -Output docs/stage2-campaign-results.md `
     -OutDirs out_bad_validator,out_good_validator,out_length_only_indexed,`
              out_unchecked_indexed,out_clamped_indexed,`
-             out_div_by_zero,out_div_by_zero_guarded
+             out_div_by_zero,out_div_by_zero_guarded,`
+             out_four_sinks_one_bad,out_four_sinks_all_good
 ```
 
 ## Smoke examples

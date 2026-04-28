@@ -52,4 +52,12 @@ inline Candidate clamp_small_index(Candidate c) {
   return c;
 }
 
+// Validators sufficient for the index sinks (see sink_oracle.hpp table sizes).
+inline bool good_index_16_validator(const Candidate& c) {
+  return c.length >= 0 && c.offset >= 0 && c.offset < 16;
+}
+inline bool good_index_4_validator(const Candidate& c) {
+  return c.length >= 0 && c.offset >= 0 && c.offset < 4;
+}
+
 }  // namespace fuzzing

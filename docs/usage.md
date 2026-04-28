@@ -28,6 +28,8 @@ Stage 2 binaries accept a raw byte file and parse it into a `Candidate` struct b
 .\build-vs\Debug\stage2_clamped_indexed.exe .\path\to\input.bin
 .\build-vs\Debug\stage2_div_by_zero.exe .\path\to\input.bin
 .\build-vs\Debug\stage2_div_by_zero_guarded.exe .\path\to\input.bin
+.\build-vs\Debug\stage2_four_sinks_one_bad.exe .\path\to\input.bin
+.\build-vs\Debug\stage2_four_sinks_all_good.exe .\path\to\input.bin
 ```
 
 Exit code 0 means the case was accepted + sink-safe, or rejected by the validator. Non-zero means the oracle fired (the validator accepted an unsafe value).

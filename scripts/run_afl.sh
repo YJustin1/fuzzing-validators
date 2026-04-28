@@ -57,7 +57,8 @@ echo "[build] building ${TARGET} + file-input reproducers"
 cmake --build "${BUILD_DIR}" --target "${TARGET}"
 for repro in stage2_bad_validator stage2_good_validator stage2_length_only_indexed \
              stage2_unchecked_indexed stage2_clamped_indexed \
-             stage2_div_by_zero stage2_div_by_zero_guarded; do
+             stage2_div_by_zero stage2_div_by_zero_guarded \
+             stage2_four_sinks_one_bad stage2_four_sinks_all_good; do
   cmake --build "${BUILD_DIR}" --target "${repro}" 2>/dev/null || true
 done
 

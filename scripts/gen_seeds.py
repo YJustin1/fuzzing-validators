@@ -88,10 +88,19 @@ def build_corpus() -> list[tuple[str, bytes]]:
             unchecked_indexed_safe = 0 <= off < SMALL_INDEX_SIZE
             div_unchecked_safe = off != 0
 
+            # four_sinks_one_bad: last stage is bad_validator+sink_use, but only
+            # when the 16- and 4-table index gates also pass (o in 0..3, l>=0).
+            g16 = ln >= 0 and 0 <= off < 16
+            g4 = ln >= 0 and 0 <= off < 4
+            bad_for_mem = 0 <= off < BUFFER_SIZE
+            reaches_weak_mem = g16 and g4 and bad_for_mem
+            four_sinks_bad_safe = (not reaches_weak_mem) or sink_use_safe
+
             if not (bad_pair_safe
                     and length_only_pair_safe
                     and unchecked_indexed_safe
-                    and div_unchecked_safe):
+                    and div_unchecked_safe
+                    and four_sinks_bad_safe):
                 continue
             name = f"seed_{idx:03d}_o{off}_l{ln}.bin"
             corpus.append((name, encode(off, ln)))

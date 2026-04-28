@@ -94,6 +94,8 @@ REPRO_MAP = {
     "stage2_afl_clamped_indexed": "stage2_clamped_indexed",
     "stage2_afl_div_by_zero": "stage2_div_by_zero",
     "stage2_afl_div_by_zero_guarded": "stage2_div_by_zero_guarded",
+    "stage2_afl_four_sinks_one_bad": "stage2_four_sinks_one_bad",
+    "stage2_afl_four_sinks_all_good": "stage2_four_sinks_all_good",
 }
 
 
@@ -337,6 +339,8 @@ EXPECTATION = {
     "stage2_afl_clamped_indexed":     ("no crashes", "clamp in copy_and_verify before indexed sink"),
     "stage2_afl_div_by_zero":         ("crashes",    "no validator on division sink"),
     "stage2_afl_div_by_zero_guarded": ("no crashes", "nonzero_validator rejects denominator==0"),
+    "stage2_afl_four_sinks_one_bad":   ("crashes",    "3 good sink/val + 1 bad (mem); OOB on last"),
+    "stage2_afl_four_sinks_all_good":  ("no crashes", "4 good sink/val pairs; mem uses good_validator"),
 }
 
 

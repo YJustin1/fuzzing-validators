@@ -71,6 +71,18 @@ target_link_libraries(stage2_afl_div_by_zero PRIVATE stage1_core)
 add_executable(stage2_afl_div_by_zero_guarded src/stage2_afl_div_by_zero_guarded.cpp)
 target_link_libraries(stage2_afl_div_by_zero_guarded PRIVATE stage1_core)
 
+add_executable(stage2_four_sinks_one_bad src/stage2_four_sinks_one_bad.cpp)
+target_link_libraries(stage2_four_sinks_one_bad PRIVATE stage1_core)
+
+add_executable(stage2_four_sinks_all_good src/stage2_four_sinks_all_good.cpp)
+target_link_libraries(stage2_four_sinks_all_good PRIVATE stage1_core)
+
+add_executable(stage2_afl_four_sinks_one_bad src/stage2_afl_four_sinks_one_bad.cpp)
+target_link_libraries(stage2_afl_four_sinks_one_bad PRIVATE stage1_core)
+
+add_executable(stage2_afl_four_sinks_all_good src/stage2_afl_four_sinks_all_good.cpp)
+target_link_libraries(stage2_afl_four_sinks_all_good PRIVATE stage1_core)
+
 # Smoke-test driver for host_examples.hpp (paired with scripts/smoke_test.py).
 add_executable(smoke_host_examples src/smoke_host_examples.cpp)
 target_link_libraries(smoke_host_examples PRIVATE stage1_core)
