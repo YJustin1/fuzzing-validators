@@ -143,7 +143,7 @@ Overview
 ============================================================
 target                                    crashes  reasons
 stage2_afl_bad_validator                        5  range_out_of_bounds(5)
-stage2_good_validator                           0  -
+stage2_afl_good_validator                       0  -
 ```
 
 ### Reading it correctly
@@ -155,7 +155,7 @@ stage2_good_validator                           0  -
 
 ### Why the report runs inside the container
 
-AFL++ crash filenames contain `:`, which NTFS/PowerShell can't iterate cleanly. `scripts/report.ps1` runs `scripts/report.py` inside the AFL++ container where Linux filename semantics apply. Crash replay uses the non-AFL file-input binaries (`stage2_bad_validator`, `stage2_good_validator`, `stage2_length_only_indexed`), which `run_afl.sh` builds alongside the AFL targets.
+AFL++ crash filenames contain `:`, which NTFS/PowerShell can't iterate cleanly. `scripts/report.ps1` runs `scripts/report.py` in the AFL++ container (Linux filenames). Replay uses the non-AFL `stage2_*` reproducers that `run_afl.sh` builds next to the AFL binary.
 
 ## Reproducing a Specific Crash
 
@@ -185,7 +185,7 @@ python scripts\smoke_test.py
 
 This is a parity check, not a fuzz campaign. Expect all "reliable" cases to PASS; the ASan-only rows (stack-OOB reads/writes) will typically FAIL on MSVC Debug without sanitizers — that's documented and expected. For a fair score on those rows, build with `-DENABLE_SANITIZERS=ON` on Linux and pass `--binary`.
 
-RLBox-specific indexing (`sandbox_array_index_*` patterns) are **not** in the smoke runner — use `stage2_afl_unchecked_indexed` and `stage2_afl_clamped_indexed` instead.
+Indexing with the full `Candidate` + RLBox pipeline is **not** in the smoke runner — use `stage2_afl_unchecked_indexed` and `stage2_afl_clamped_indexed`.
 
 ## Related Documentation
 

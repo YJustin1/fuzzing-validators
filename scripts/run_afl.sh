@@ -5,9 +5,10 @@
 # the project root mounted at /src. Example (from the Windows host):
 #
 #   docker run --rm -it \
-#     -v "C:\path\to\fuzzing-validators:/src" \
+#     -v "/path/to/fuzzing-validators:/src" \
 #     -w /src aflplusplus/aflplusplus \
 #     bash scripts/run_afl.sh stage2_afl_bad_validator out_bad 600
+#   (On Windows Docker Desktop, use e.g. -v "C:\path\to\fuzzing-validators:/src".)
 #
 # Or use scripts/fuzz.ps1 for a one-line Windows wrapper.
 #

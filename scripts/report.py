@@ -333,8 +333,8 @@ EXPECTATION = {
     "stage2_afl_bad_validator":       ("crashes",    "weak validator rejects only offset bounds"),
     "stage2_afl_good_validator":      ("no crashes", "strict validator; calibration control"),
     "stage2_afl_length_only_indexed": ("crashes",    "length-only validator fails the indexed sink"),
-    "stage2_afl_unchecked_indexed":   ("crashes",    "no validator (UNSAFE_unverified model); mirrors sandbox_array_index_unchecked_*"),
-    "stage2_afl_clamped_indexed":     ("no crashes", "clamping copy_and_verify; mirrors sandbox_array_index_checked"),
+    "stage2_afl_unchecked_indexed":   ("crashes",    "no validator; UNSAFE_unverified index model"),
+    "stage2_afl_clamped_indexed":     ("no crashes", "clamp in copy_and_verify before indexed sink"),
     "stage2_afl_div_by_zero":         ("crashes",    "no validator on division sink"),
     "stage2_afl_div_by_zero_guarded": ("no crashes", "nonzero_validator rejects denominator==0"),
 }

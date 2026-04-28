@@ -45,7 +45,7 @@ target_link_libraries(stage2_afl_good_validator PRIVATE stage1_core)
 add_executable(stage2_afl_length_only_indexed src/stage2_afl_length_only_indexed.cpp)
 target_link_libraries(stage2_afl_length_only_indexed PRIVATE stage1_core)
 
-# Extra Stage 2 targets (indexed / division sinks).
+# Stage 2: small-table index + division sinks (reproducers + AFL).
 
 add_executable(stage2_unchecked_indexed src/stage2_unchecked_indexed.cpp)
 target_link_libraries(stage2_unchecked_indexed PRIVATE stage1_core)

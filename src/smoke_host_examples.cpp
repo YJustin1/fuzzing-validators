@@ -1,12 +1,5 @@
-// Smoke-test driver for the host_examples cases we can exercise without
-// a full RLBox sandbox. See src/core/host_examples.hpp for the full
-// rationale; the short version is that those functions fall
-// into three categories:
-//
-//   (A) Smoke-test, constant-behavior cases   -> handled here
-//   (B) Arg-driven cases                      -> handled here (fixed arg)
-//   (C) RLBox-specific cases                  -> handled by
-//       stage2_afl_unchecked_indexed / stage2_afl_clamped_indexed
+// Smoke driver for host_examples (A)(B) only; see host_examples.hpp.
+// (C) RLBox pipeline: stage2_afl_unchecked_indexed / stage2_afl_clamped_indexed.
 //
 // Invoke with one case name and an optional numeric argument:
 //
@@ -92,13 +85,7 @@ int dispatch(const std::string& name, int argc, char** argv) {
     return 0;
   }
 
-  // ---- (C) RLBox-specific cases ----
-  // NOT handled here. sandbox_array_index_unchecked_unsafe,
-  // sandbox_array_index_unchecked_safe,
-  // sandbox_primitive_array_index_unchecked_unsafe, and
-  // sandbox_array_index_checked are driven by the dedicated AFL
-  // harnesses stage2_afl_unchecked_indexed and
-  // stage2_afl_clamped_indexed.
+  // (C) Full RLBox index pipeline: stage2_afl_unchecked_indexed / clamped_indexed.
 
   std::cerr << "unknown case: " << name << "\n";
   return 2;

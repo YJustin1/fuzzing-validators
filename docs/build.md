@@ -33,12 +33,9 @@ cmake -S . -B build-vs -G "Visual Studio 17 2022"
 cmake --build build-vs --config Debug
 ```
 
-Output lives in `build-vs\Debug\`. Built targets:
+Output lives in `build-vs\Debug\`. CMake builds all harnesses in `CMakeLists.txt`: Stage 1 binaries, every `stage2_*` file-input reproducer, every `stage2_afl_*` AFL entrypoint, and `smoke_host_examples`.
 
-- `stage1_bad_validator.exe`, `stage1_good_validator.exe`
-- `stage2_bad_validator.exe`, `stage2_good_validator.exe`, `stage2_length_only_indexed.exe`
-- `stage2_afl_bad_validator.exe`, `stage2_afl_good_validator.exe`, `stage2_afl_length_only_indexed.exe`
-  - Under MSVC the `__AFL_HAVE_MANUAL_CONTROL` macro is never defined, so these fall back to file-input mode — they behave identically to the non-AFL Stage 2 targets.
+Under MSVC, `__AFL_HAVE_MANUAL_CONTROL` is undefined, so `stage2_afl_*` fall back to `argv[1]` file input like the plain `stage2_*` reproducers.
 
 ## AFL++ Flavor (Docker)
 
@@ -52,19 +49,21 @@ On first run, `run_afl.sh` will:
 
 1. Create `build-afl/` inside the container.
 2. Configure with `CC=afl-clang-fast CXX=afl-clang-fast++` and the Ninja generator.
-3. Build the requested AFL target **plus the three non-AFL file-input reproducers** (`stage2_bad_validator`, `stage2_good_validator`, `stage2_length_only_indexed`). The reproducers are required by `scripts/report.py` for crash replay.
+3. Build the requested AFL target **plus every non-AFL `stage2_*` reproducer** listed in `scripts/run_afl.sh` (needed by `scripts/report.py` for crash replay).
 4. Run `afl-fuzz`.
 
 If you want to build manually inside the container without running a campaign:
 
 ```bash
 docker run --rm -it \
-  -v "C:\Users\justi\Documents\Projects\fuzzing-validators:/src" \
+  -v "/path/to/fuzzing-validators:/src" \
   -w /src aflplusplus/aflplusplus \
   bash -c "mkdir -p build-afl && cd build-afl \
     && CC=afl-clang-fast CXX=afl-clang-fast++ cmake -G Ninja .. \
     && cmake --build ."
 ```
+
+On Windows Docker Desktop, replace the `-v` path with something like `"C:\path\to\fuzzing-validators:/src"`.
 
 ### Cache safety
 

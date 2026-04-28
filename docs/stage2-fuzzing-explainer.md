@@ -47,7 +47,7 @@ If yes, Stage 2 found a validator insufficiency for that use-site.
 
 ## Improvements Layered on Top
 
-The Stage 2 harness now adds three ingredients on top of the basic file-input loop.
+The Stage 2 harness adds three pieces on top of the basic file-input loop.
 
 ### 1. AFL++ persistent mode
 
@@ -58,21 +58,17 @@ The AFL targets compile in two modes based on the toolchain:
 
 ### 2. Sink-dependent validator sufficiency
 
-A single validator is not categorically "good" or "bad" — sufficiency depends on the sink. To exercise this, the harness ships a second sink and a second deliberately-weak validator:
+A validator is only **sufficient relative to a sink**. The repo pairs weak vs strong behavior under comparable budgets:
 
-- `sink_use` (range sink): uses both `offset` and `length` to `memset` into a buffer. Safe under `good_validator`; unsafe under `bad_validator`.
-- `sink_indexed_read` (index sink): uses `offset` as an index into a 16-entry table. Safe under `good_validator`; unsafe under `length_only_validator`, which only constrains `length` and leaves `offset` unbounded.
+| Pair | Weak side (expect crashes) | Control (expect clean) |
+| --- | --- | --- |
+| Range write | `bad_validator` + `sink_use` | `good_validator` + `sink_use` |
+| 16-elem index | `length_only_validator` + `sink_indexed_read` | (same sink would be safe under `good_validator`) |
+| 4-elem index | `unchecked_validator` + `sink_indexed_read_small` | `clamp_small_index` + `unchecked_validator` + same sink |
+| Division | `unchecked_validator` + `sink_divide` | `nonzero_validator` + `sink_divide` |
 
-This gives three paired AFL targets:
-
-| Target | Validator | Sink | Expected |
-| --- | --- | --- | --- |
-| `stage2_afl_bad_validator` | `bad_validator` | `sink_use` | crashes found |
-| `stage2_afl_good_validator` | `good_validator` | `sink_use` | no crashes |
-| `stage2_afl_length_only_indexed` | `length_only_validator` | `sink_indexed_read` | crashes found |
-
-The length-only + indexed pair is the clearest demonstration of the core proposal claim: validation must be evaluated against the concrete use-site.
+Full target names: `stage2_afl_bad_validator` / `good`, `length_only_indexed`, `unchecked_indexed` / `clamped_indexed`, `div_by_zero` / `div_by_zero_guarded`.
 
 ### 3. Boundary-focused seed corpus
 
-`scripts/gen_seeds.py` writes 21 seeds that cluster around validator/sink decision boundaries (0, 1, `BUFFER_SIZE-1`, `BUFFER_SIZE`, `INDEX_TABLE_SIZE-1`, `INDEX_TABLE_SIZE`, and negatives). Every seed is required to be crash-safe across all three AFL targets so the same `seeds/` directory can bootstrap any campaign without triggering AFL's "crashing seed" abort.
+`scripts/gen_seeds.py` enumerates offset/length pairs near validator and sink boundaries, then **filters** so every seed is safe under **all** shipped AFL `(validator, sink)` pairs (otherwise AFL aborts on a crashing seed). The corpus size changes when new targets tighten that universal-safe set.

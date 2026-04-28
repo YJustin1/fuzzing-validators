@@ -57,10 +57,3 @@ Thumbs.db
 __pycache__/
 *.pyc
 .pytest_cache/
-
-# =============================================================
-# Things we DO want tracked, restated for clarity
-# =============================================================
-# !seeds/                # explicit corpus, kept in git
-# !results/*.txt         # curated text reports
-# !docs/host.cpp         # *.exe glob doesn't match this; just a reminder

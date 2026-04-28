@@ -1,45 +1,17 @@
 #pragma once
 
-// Reference-style host examples that can be exercised dynamically without
-// a full RLBox sandbox. They back the smoke-test runner (scripts/smoke_test.py),
-// which encodes expected safe vs trap outcomes for each case name.
+// Host-side examples runnable without a full sandbox; paired with
+// scripts/smoke_test.py (expected safe vs trap per case name).
 //
-// These examples fall into three categories, and this
-// project handles them in three *different* places. This header only
-// covers categories (A) and (B); category (C) is handled by dedicated
-// AFL harnesses.
+// (A) Constant-behavior — no inputs. Safe: trivial_* reads; crash: basic_null_*,
+//     basic_div_by_zero, basic_oob_*.
+// (B) Arg-driven — smoke_test pins args. basic_oob_read_from_arg crashes when
+//     index >= 4; basic_null_write2 / basic_div_by_zero2 on bad inputs;
+//     basic_div_by_zero_guarded always safe.
+// (C) Full Candidate + RLBox pipeline — not here; use stage2_afl_unchecked_indexed
+//     and stage2_afl_clamped_indexed.
 //
-//   (A) Smoke-test, constant-behavior cases:
-//       No inputs, deterministic outcome every run. Useful only as a
-//       one-shot check that the expected-safe cases stay safe and the
-//       expected-crash cases still trap on this platform/toolchain.
-//
-//       Safe:  trivial_array_read, repeated_array_read,
-//              trivial_array_read_2d, trivial_struct_read,
-//              trivial_struct_read_nested
-//       Crash: basic_null_read, basic_null_write, basic_div_by_zero,
-//              basic_oob_read, basic_oob_write
-//
-//   (B) Arg-driven cases:
-//       A single scalar argument controls the outcome. The smoke-test
-//       runner pins a fixed value chosen to force the smoke_test.py-expected
-//       behavior. These *could* be fuzzed per-argument but the payoff
-//       is small since they don't exercise any RLBox boundary.
-//
-//       basic_oob_read_from_arg(index)   -> crash when index >= 4
-//       basic_null_write2(ptr)           -> crash when ptr == nullptr
-//       basic_div_by_zero2(denom)        -> crash when denom == 0
-//       basic_div_by_zero_guarded(denom) -> always safe
-//
-//   (C) RLBox-specific cases (NOT in this header):
-//       Unchecked vs clamped sandbox indexing is modeled by the dedicated
-//       AFL harnesses in src/stage2_afl_*, which drive the fuzzer-controlled
-//       sandbox value through our full RlSandbox + validator + sink pipeline.
-//
-// Sanitizer caveat for category (A) stack-array OOB reads/writes:
-// those are undefined behavior that may not reliably trap on MSVC or
-// optimized Linux builds. For dependable signal on those rows, build
-// with ENABLE_SANITIZERS=ON.
+// Stack OOB in (A) may not trap without sanitizers (ENABLE_SANITIZERS=ON).
 
 #include <array>
 #include <cstdint>
@@ -167,10 +139,5 @@ inline int basic_oob_read_from_arg(uint32_t index) {
   (void)sink;
   return 0;
 }
-
-// NOTE: Category (C) RLBox-specific cases (sandbox_array_index_*) are
-// NOT ported here. Those require a live RlSandbox and are exercised by
-// the AFL harnesses stage2_afl_unchecked_indexed and
-// stage2_afl_clamped_indexed.
 
 }  // namespace host_examples

@@ -46,9 +46,7 @@ inline void sink_indexed_read(const Candidate& c) {
   (void)sink_value;
 }
 
-// Small indexed sink with a 4-element table (matches smoke small tables). Used by
-// the unchecked_indexed / clamped_indexed targets to stay faithful to
-// the sandbox_array_index_* tests.
+// Small indexed sink (4 elements); used by unchecked_indexed / clamped_indexed.
 inline void sink_indexed_read_small(const Candidate& c) {
   static constexpr std::size_t kSmallTableSize = 4;
   static const int32_t table[kSmallTableSize] = { 100, 200, 300, 400 };
@@ -61,8 +59,7 @@ inline void sink_indexed_read_small(const Candidate& c) {
   (void)sink_value;
 }
 
-// Division use-site: attacker-controlled offset is the denominator.
-// Division sink with attacker-controlled denominator (divide-by-zero hazard).
+// Division sink: `offset` is the denominator (divide-by-zero when zero).
 inline void sink_divide(const Candidate& c) {
   if (c.offset == 0) {
     oracle_fail(c, "divide_by_zero");

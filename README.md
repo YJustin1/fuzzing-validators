@@ -21,13 +21,13 @@ Every stage tests the same pipeline. The unit under test is a `Candidate { offse
 input source  ->  RLBox taint/copy_and_verify  ->  validator  ->  sink  ->  oracle
 ```
 
-- **validator** — host-side logic that decides whether the sandbox value is safe to use. The project ships a known-good validator and two deliberately-weak ones for calibration.
+- **validator** — host-side logic that decides whether the sandbox value is safe to use. The project ships `good_validator` plus several weaker or no-op validators for calibration.
 - **sink** — simulated trusted use-site. Several are shipped (e.g. `sink_use`, `sink_indexed_read`, `sink_indexed_read_small`, `sink_divide`). Different sinks stress *different* validators — sufficiency is sink-dependent.
 - **oracle** — detects when an accepted value causes unsafe behavior and aborts so AFL++ records a crash.
 
 ## Quickstart
 
-Already have Visual Studio 2022 and Docker Desktop? Three commands gets you a campaign:
+Already have Visual Studio 2022 and Docker Desktop? A short sequence gets you a campaign:
 
 ```powershell
 git submodule update --init --recursive
@@ -73,7 +73,7 @@ scripts/
   report.ps1               # Windows wrapper for report.py (text or markdown)
   smoke_test.py            # drives smoke_host_examples (expectations listed in the script)
 seeds/                     # AFL++ seed corpus (generated)
-results/                   # campaign logs + text reports (generated)
+results/                   # e.g. stage2-campaign-results.txt (logs under results/logs/ when fuzzing)
 third_party/rlbox/         # RLBox submodule
 docs/                      # see table above
 ```
@@ -110,4 +110,4 @@ Latest all-targets run (7 campaigns × 300s each) is in [`docs/stage2-campaign-r
 Illustrative host-side examples live in `src/core/host_examples.hpp`. `smoke_host_examples` runs them by name; `scripts/smoke_test.py` encodes expected safe vs trap outcomes for automation.
 
 - Constant-behavior and arg-driven cases → smoke runner
-- Full RLBox `Candidate` pipeline for indexing → `stage2_afl_unchecked_indexed` and `stage2_afl_clamped_indexed` (not the smoke binary)
+- Full RLBox `Candidate` pipeline (indexing, division, etc.) → the `stage2_afl_*` harnesses, not the smoke binary

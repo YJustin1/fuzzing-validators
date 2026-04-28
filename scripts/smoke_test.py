@@ -2,7 +2,7 @@
 """Smoke-test the host_examples cases we can exercise without RLBox.
 
 Those functions fall into three categories; this script only drives
-categories (A) and (B). Category (C) (sandbox_array_index_*) is fuzzed by
+categories (A) and (B). Category (C) (full RLBox index path) is fuzzed by
 the AFL harnesses stage2_afl_unchecked_indexed /
 stage2_afl_clamped_indexed.
 
